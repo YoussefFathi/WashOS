@@ -2,6 +2,7 @@ package apps;
 
 import OS.PCB;
 import OS.Process;
+import OS.States;
 
 public class SpinControl extends Process {
 
@@ -12,13 +13,25 @@ public class SpinControl extends Process {
 
 	@Override
 	public void run() {
-		System.out.println("Drum is spinning ...");
+		try {
+			sem.acquire();
+			System.out.println("Drum is spinning ...");
+			Thread.currentThread().join(intensityInterval);
+			this.getPcb().setProcessState(States.TERMINATED);
+			sem.release();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Moshkela hena");
+			e.printStackTrace();
+			sem.release();
+		}
+
 	}
 
-	@Override
-	public void run(int temp) {
-		// TODO Auto-generated method stub
+//	@Override
+//	public void run(int temp) {
+//		// TODO Auto-generated method stub
 
-	}
+//	}
 
 }

@@ -4,5 +4,6 @@ public enum States {
 	RUNNING,
 	BLOCKED,
 	CREATED,
-	READY
+	READY,
+	TERMINATED
 }

@@ -2,6 +2,7 @@ package apps;
 
 import OS.PCB;
 import OS.Process;
+import OS.States;
 
 public class TemperatureControl extends Process {
 
@@ -11,15 +12,24 @@ public class TemperatureControl extends Process {
 	}
 
 	@Override
-	public void run(int temp) {
-		System.out.println("Temperature is set to "+temp);
-
-	}
-
-	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		
+		try {
+			sem.acquire();
+			System.out.println("Temperature is set");
+			Thread.currentThread().join(intensityInterval);
+			this.getPcb().setProcessState(States.TERMINATED);
+			sem.release();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
+
+//	@Override
+//	public void run() {
+//		// TODO Auto-generated method stub
+//
+//	}
 
 }
