@@ -13,12 +13,12 @@ import apps.WaterPump;
 
 public class HardDisk {
 	private static ArrayList<Process> apps = new ArrayList<Process>();
-
+	private static ArrayList<Process> extraFromRam = new ArrayList<Process>();
 	public HardDisk() {
 		apps.add(new TemperatureControl(new PCB("1", States.CREATED, 0, 0)));
+		apps.add(new WaterPump(new PCB("4", States.CREATED, 0, 0)));
 		apps.add(new SpinControl(new PCB("2", States.CREATED, 0, 0)));
 		apps.add(new DrainControl(new PCB("3", States.CREATED, 0, 0)));
-		apps.add(new WaterPump(new PCB("4", States.CREATED, 0, 0)));
 	}
 
 	public static void main(String[] args) {
@@ -32,6 +32,11 @@ public class HardDisk {
 
 	public void setApps(ArrayList<Process> apps) {
 		this.apps = apps;
+	}
+
+	public static void addExtra(Process process) {
+		extraFromRam.add(process);
+		process.getPcb().setRamAddress(extraFromRam.indexOf(process));
 	}
 
 }

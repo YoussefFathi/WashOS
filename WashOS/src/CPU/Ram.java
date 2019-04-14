@@ -7,17 +7,39 @@ import OS.Process;
 import OS.States;
 
 public class Ram {
-	private static ArrayList<Process> processes = new ArrayList<Process>();
-
+	private static Process[] processes = new Process[1024];
+	public void Ram() {
+		for(int i =0;i<processes.length;i++) {
+			processes[i]=null;
+		}
+	}
 	public void addProcess(Process process) {
-		processes.add(process);
-		process.getPcb().setRamAddress(processes.indexOf(process));
+		int ramAddress = 0;
+		boolean foundNull=false;
+		for(int i =0;i<processes.length;i++) {
+			if(processes[i]==null) {
+				processes[i]=process;
+				ramAddress = i;
+				foundNull=true;
+				break;
+			}
+			
+		}
+		if(!foundNull) {
+			HardDisk.addExtra(process);
+			return;
+		}
+//		processes.add(process);
+		
+		process.getPcb().setRamAddress(ramAddress);
 	}
 
 	public Process deleteProcess(PCB pcb) {
-		for (int i = 0; i < processes.size(); i++) {
-			if (processes.get(i).getPcb().equals(pcb)) {
-				return processes.remove(i);
+		for (int i = 0; i < processes.length; i++) {
+			if (processes[i].getPcb().equals(pcb)) {
+				Process returned = processes[i];
+				processes[i]=null;
+				return returned;
 			}
 
 		}
@@ -25,9 +47,9 @@ public class Ram {
 	}
 
 	public Process getProcess(PCB pcb) {
-		for (int i = 0; i < processes.size(); i++) {
-			if (processes.get(i).getPcb().equals(pcb)) {
-				return processes.get(i);
+		for (int i = 0; i < processes.length; i++) {
+			if (processes[i].getPcb().equals(pcb)) {
+				return processes[i];
 			}
 
 		}
@@ -35,15 +57,15 @@ public class Ram {
 	}
 
 	public void refreshRam() {
-		for (int i = 0; i < processes.size(); i++) {
-			if (processes.get(i).getPcb().getProcessState().equals(States.TERMINATED)) {
-				processes.remove(i);
+		for (int i = 0; i < processes.length; i++) {
+			if (processes[i].getPcb().getProcessState().equals(States.TERMINATED)) {
+				processes[i]=null;
 			}
 
 		}
 	}
 
-	public ArrayList<Process> getProcesses() {
+	public Process[] getProcesses() {
 		return processes;
 	}
 

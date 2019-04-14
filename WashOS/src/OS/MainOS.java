@@ -12,10 +12,13 @@ import java.util.concurrent.Semaphore;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import CPU.Cpu;
 import CPU.Ram;
+import views.Chart;
 
+import org.jfree.chart.*;
 public class MainOS implements ActionListener {
 	private String currentProgram;
 	private Queue<PCB> ready = new LinkedList<PCB>();
@@ -25,15 +28,22 @@ public class MainOS implements ActionListener {
 	private String intensity;
 	Semaphore c = new Semaphore(1);
 	private PCB running;
+	private long startTime;
+	private long endTime;
+	private ArrayList<Long> executionTimes = new ArrayList<Long>();
+	private ArrayList<Long> waitingTimes = new ArrayList<Long>();
+
 	// private Queue<Process> created = new LinkedList<>();
 	private Cpu cpu = new Cpu();
 
-	public MainOS(String program, String intensity) {
+	public MainOS(String program, String intensity,long startTime) {
 		initializeButtons();
 		this.currentProgram = program;
 		this.intensity = intensity;
+		this.startTime = startTime;
 		this.setIntensityCount(intensity);
 		this.longTermScheduler();
+		
 		// this.setPriorities();
 		// Collections.sort(ready, new ComparePriorities());
 		shortTermScheduler.start();
@@ -65,21 +75,6 @@ public class MainOS implements ActionListener {
 			break;
 		}
 	}
-
-	public void setPriorities() {
-		switch (currentProgram) {
-		case "wash":
-			cpu.setWashPriorities();
-			break;
-		case "rinse":
-			cpu.setRinsePriorities();
-			break;
-		case "dry":
-			cpu.setDryPriotrities();
-			break;
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	public void longTermScheduler() {
 		try {
@@ -91,10 +86,12 @@ public class MainOS implements ActionListener {
 						((Process) app).getPcb().setProcessState(States.READY);
 						((Process) app).setIntensityInterval(intensity);
 						cpu.addToRam((Process) app);
+						((Process)app).getPcb().setStartWaitingTime(System.currentTimeMillis());
 						ready.add(((Process) app).getPcb());
 					});
 				}
 			}
+			
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -103,7 +100,38 @@ public class MainOS implements ActionListener {
 		// System.out.println(ready);
 
 	}
-
+	public void printAnalysis() {
+		System.out.println("***********************************");
+		ArrayList<Long> turnAroundTimes = new ArrayList<Long>();
+		double sumTurn = 0;
+		for(int i=0;i<waitingTimes.size();i++) {
+			turnAroundTimes.add(waitingTimes.get(i)+executionTimes.get(i));
+			sumTurn = sumTurn +waitingTimes.get(i)+executionTimes.get(i);
+		}
+		SwingUtilities.invokeLater(() -> {
+            Chart ex1 = new Chart(executionTimes,"E");
+            ex1.setVisible(true);
+            Chart ex2 = new Chart(waitingTimes,"R");
+            ex2.setVisible(true);
+            Chart ex3 = new Chart(turnAroundTimes,"T");
+            ex3.setVisible(true);
+        });
+		double sumExecution = 0;
+		for(int i=0;i<executionTimes.size();i++) {
+			sumExecution = sumExecution+executionTimes.get(i);
+		}
+		double sumWaiting = 0;
+		for(int i=0;i<waitingTimes.size();i++) {
+			sumWaiting = sumWaiting+waitingTimes.get(i);
+		}
+		double totalCpuTime = System.currentTimeMillis()-startTime;
+		double cpuUtil = (sumExecution/totalCpuTime)*100;
+		double avgResponse = (sumWaiting/waitingTimes.size());
+		double avgTurn = (sumTurn/waitingTimes.size());
+		System.out.println("CPU UTILIZATION: "+cpuUtil +"%");
+		System.out.println("Average Response Time: "+avgResponse +" ms");
+		System.out.println("Average TurnAround Time: "+avgTurn +" ms");
+	}
 	public Thread shortTermScheduler = new Thread() {
 		public void run() {
 			while (intensityCount > 0) {
@@ -111,37 +139,48 @@ public class MainOS implements ActionListener {
 					if (!interrupted) {
 						running = ready.remove();
 						// System.out.println(running.getPriority());
+						System.out.println("--------------------------------------------");
 						cpu.dispatchToProcessor(running);
-						
+						executionTimes.add(running.getEndTime());
+						waitingTimes.add(running.getWaitingTime());
+//						System.out.println(running.getEndTime() + "End");
+//						System.out.println(running.getWaitingTime() + "Waiting");
 					}
-					
 				}
 				if (!interrupted) {
 					intensityCount--;
 					c.release();
+					System.out.println("*************************************");
+					System.out.println("Round of Processes Finished");
+					System.out.println("*************************************");
 					longTermScheduler();
 				}
 			}
-
+			printAnalysis();
 		}
 	};
 
 	public void handleInterrupt() {
+		System.out.println("Process Interrupted");
 		interrupted = true;
 		blocked.add(running);
+		System.out.println("Process Interrupted");
 		cpu.interrupt(running);
 	}
 
 	public void handleRevival() {
 		while (!blocked.isEmpty()) {
 			PCB blockedPCB = blocked.remove();
+			System.out.println("Process Resumed");
 			cpu.revive(blockedPCB);
 			interrupted = false;
 		}
 	}
 
 	public static void main(String[] args) {
-		MainOS os = new MainOS("wash", "High");
+		long start = System.currentTimeMillis();
+		MainOS os = new MainOS("wash", "High",start);
+//		System.out.println(System.currentTimeMillis()-start);
 	}
 
 	@Override

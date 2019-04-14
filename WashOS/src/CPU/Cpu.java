@@ -43,20 +43,20 @@ public class Cpu  {
 
 	}
 
-	public void setWashPriorities() {
-		for(int i=0;i<ram.getProcesses().size();i++) {
-			if (ram.getProcesses().get(i) instanceof TemperatureControl) {
-				ram.getProcesses().get(i).getPcb().setPriority(3);
-			} else if (ram.getProcesses().get(i) instanceof SpinControl) {
-				ram.getProcesses().get(i).getPcb().setPriority(2);
-			} else if (ram.getProcesses().get(i) instanceof DrainControl) {
-				ram.getProcesses().get(i).getPcb().setPriority(1);
-			} else if (ram.getProcesses().get(i) instanceof WaterPump) {
-				ram.getProcesses().get(i).getPcb().setPriority(3);
-			}
-		}
-
-	}
+//	public void setWashPriorities() {
+//		for(int i=0;i<ram.getProcesses().size();i++) {
+//			if (ram.getProcesses().get(i) instanceof TemperatureControl) {
+//				ram.getProcesses().get(i).getPcb().setPriority(3);
+//			} else if (ram.getProcesses().get(i) instanceof SpinControl) {
+//				ram.getProcesses().get(i).getPcb().setPriority(2);
+//			} else if (ram.getProcesses().get(i) instanceof DrainControl) {
+//				ram.getProcesses().get(i).getPcb().setPriority(1);
+//			} else if (ram.getProcesses().get(i) instanceof WaterPump) {
+//				ram.getProcesses().get(i).getPcb().setPriority(3);
+//			}
+//		}
+//
+//	}
 	public void interrupt(PCB running) {
 //		Process app = ram.deleteProcess(running);
 		Process app  = ram.getProcess(running);

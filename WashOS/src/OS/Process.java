@@ -11,9 +11,9 @@ public abstract class Process implements Runnable {
 	abstract public void run();
 	public void setIntensityInterval(String intensity) {
 		switch(intensity) {
-		case "High":intensityInterval = 1000;break;
-		case "Medium":intensityInterval = 800;break;
-		case "Low":intensityInterval = 600;break;
+		case "High":intensityInterval = 2000;break;
+		case "Medium":intensityInterval = 100;break;
+		case "Low":intensityInterval = 800;break;
 		}
 	}
 	public Process(PCB pcb) {

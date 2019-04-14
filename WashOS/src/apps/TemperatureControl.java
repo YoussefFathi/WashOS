@@ -1,5 +1,6 @@
 package apps;
 
+import IO.IOController;
 import OS.PCB;
 import OS.Process;
 import OS.States;
@@ -14,10 +15,17 @@ public class TemperatureControl extends Process {
 	@Override
 	public void run() {
 		try {
+			this.getPcb().setStartTime(System.currentTimeMillis());
 			sem.acquire();
-			System.out.println("Temperature is set");
+			IOController.print("Console semaphore down");
+			IOController.print("Process Started");
+			this.getPcb().setWaitingTime(System.currentTimeMillis()-this.getPcb().getStartWaitingTime());
+			IOController.print("Temperature is set");
 			Thread.currentThread().join(intensityInterval);
 			this.getPcb().setProcessState(States.TERMINATED);
+			this.getPcb().setEndTime(System.currentTimeMillis()-this.getPcb().getStartTime());
+			IOController.print("Process Ended");
+			IOController.print("Console semaphore up");
 			sem.release();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
